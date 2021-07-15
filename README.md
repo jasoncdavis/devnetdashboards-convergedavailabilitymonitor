@@ -88,7 +88,7 @@ Ensure you have a sound password selection for the database user.
 
 
 ### Docker Installations:
-Ensure you have docker and docker-compose installed in your environment.  In the project's [docker](./docker/) directory is the [docker-compose.yaml](./docker/docker-compose-yaml) file which defines the environment's service requirements.  Essentially, Apache, Python and MySQL images are created.  Remember your first time running 'docker-compose up' will require some time to download images from standard repositories.
+Ensure you have docker and docker-compose installed in your environment.  In the project's [docker](./docker/) directory is the [docker-compose.yaml](./docker/docker-compose.yaml) file which defines the environment's service requirements.  Essentially, Apache, Python and MySQL images are created.  Remember your first time running 'docker-compose up' will require some time to download images from standard repositories.
 For the docker image we will create two container volumes, web-data and mysql-data, which maintain the dynamic content for the Apache we server and the MySQL database.  They will persist data if 'docker-compose stop' or 'docker-compose down' is executed.  Ensure you monitor the host system's file storage.  Development was done with about 20G disk space and easily manages thousands of endpoint monitors.  
 
 Access the Python container from the host server running docker, with 'docker exec -it dd-cam_python_1 bash'.  The project files are in /project/code.
@@ -98,7 +98,7 @@ Access the Python container from the host server running docker, with 'docker ex
 
 An 'optionsconfig.yaml' file defines the Prime Infrastructure, DNA Center and ACI APIC controller IP addresses and authorized API user credentials.  The supplied optionsconfig.yaml file is currently pointing to DevNet Always-On Sandbox systems.  Please note, the devices extracted from those inventories are NOT generally reachable from the public Internet, so your dashboards will have a lot of RED until you reconfigure it to point to EMS/controllers that have access to your network devices.
 
-Edit the [./optionsconfig.yaml](optionsconfig.yaml) file to suite your environment's inventory sources.  Multiple entries are allowed.  Comment out entries that are not currently used, preserving them for future options.  Enter each server's hostname/IP Address, authorized API username and password and any other parameters of interest.
+Edit the [src/optionsconfig.yaml](./src/optionsconfig.yaml) file to suite your environment's inventory sources.  Multiple entries are allowed.  Comment out entries that are not currently used, preserving them for future options.  Enter each server's hostname/IP Address, authorized API username and password and any other parameters of interest.
 
 
 ## Usage
@@ -152,7 +152,7 @@ If you are extracting devices from your management tools/controllers that you ca
 
 ### DevNet Sandbox
 
-The following DevNet Sandboxes are referenced in the [./optionsconfig.yaml](optionsconfig.yaml) file for sample sources of inventory:
+The following DevNet Sandboxes are referenced in the [src/optionsconfig.yaml](./src/optionsconfig.yaml) file for sample sources of inventory:
 
 [Prime Infrastructure v3.8 Always-on Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/446d800c-f6c1-45f0-bf88-b9d46baf9811?diagramType=Topology)
 
