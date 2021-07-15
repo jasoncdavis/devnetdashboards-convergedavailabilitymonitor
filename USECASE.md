@@ -1,4 +1,4 @@
-{{DevNet Dashboards - Converged Availability Monitor}}
+DevNet Dashboards - Converged Availability Monitor
 =====================================
 
 The DevNet Dashboards - Converged Availability Monitor (DD-CAM) project is part of a new set of automation offers called DevNet Dashboards.  These projects are based on leading practices developed in our Network Operations Center (NOC) for our CiscoLive conference events in the US and Europe.  We plan to release modules that can be used together to enhance network observability.
