@@ -1,0 +1,54 @@
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| devnet_dashboards  |
+| information_schema |
++--------------------+
+2 rows in set (0.00 sec)
+
+mysql> use devnet_dashboards;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++-----------------+
+| Tables_in_devnet_dashboards |
++-----------------------------+
+| inventory                   |
+| pingresults                 |
++-----------------------------+
+2 rows in set (0.00 sec)
+
+mysql> describe inventory;
++------------------+--------------+------+-----+---------+-------+
+| Field            | Type         | Null | Key | Default | Extra |
++------------------+--------------+------+-----+---------+-------+
+| hostname         | varchar(45)  | YES  |     | NULL    |       |
+| mgmt_ip_address  | varchar(45)  | NO   | PRI | NULL    |       |
+| serial_number    | varchar(30)  | YES  |     | NULL    |       |
+| device_type      | varchar(120) | YES  |     | NULL    |       |
+| device_group     | varchar(45)  | YES  |     | NULL    |       |
+| model            | varchar(45)  | YES  |     | NULL    |       |
+| source           | varchar(30)  | YES  |     | NULL    |       |
+| software_version | varchar(30)  | YES  |     | NULL    |       |
+| location         | varchar(60)  | YES  |     | NULL    |       |
+| contacts         | varchar(255) | YES  |     | NULL    |       |
+| do_ping          | tinyint(1)   | YES  |     | NULL    |       |
++------------------+--------------+------+-----+---------+-------+
+11 rows in set (0.00 sec)
+
+mysql> describe pingresults;
++-----------------+--------------+------+-----+---------+-------+
+| Field           | Type         | Null | Key | Default | Extra |
++-----------------+--------------+------+-----+---------+-------+
+| mgmt_ip_address | varchar(45)  | NO   | PRI | NULL    |       |
+| reachable_pct   | tinyint      | YES  |     | NULL    |       |
+| avg_latency     | decimal(7,2) | YES  |     | NULL    |       |
+| min_latency     | decimal(7,2) | YES  |     | NULL    |       |
+| max_latency     | decimal(7,2) | YES  |     | NULL    |       |
+| datetime_lastup | datetime     | YES  |     | NULL    |       |
+| down_count      | int          | NO   |     | NULL    |       |
++-----------------+--------------+------+-----+---------+-------+
+7 rows in set (0.00 sec)

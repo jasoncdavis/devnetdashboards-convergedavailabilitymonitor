@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  web:
+    build: apache
+    image: ddcam_apache:latest
+    hostname: web-server
+    volumes:
+      - type: volume
+        source: web-data
+        target: /usr/local/apache2/htdocs
+    ports:
+      - 8443:443
+
+  python:
+    build:
+      context: ../
+      dockerfile: ./docker/python/Dockerfile
+    image: ddcam_python:latest
+    hostname: python-server
+    volumes:
+      - type: volume
+        source: web-data
+        target: /web-data
+    stdin_open: true
+    tty: true
+
+  db:
+    image: ddcam_mysql:latest
+    build:
+      context: ./mysql
+      args:
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    hostname: mysql-server
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DB_PORT: ${MYSQL_DB_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+    ports:
+      - ${MYSQL_DB_PORT}:3306
+    command: [mysqld, --default-authentication-plugin=mysql_native_password, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --innodb_monitor_enable=all, --max-connections=1001]
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+
+volumes:
+  mysql-data:
+  web-data:

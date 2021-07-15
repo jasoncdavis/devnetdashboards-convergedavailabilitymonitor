@@ -1,0 +1,45 @@
+#optionsconfig.yaml
+#Configuration options for DevNet Dashboards project - contains target endpoint names/IPs, credentials, etc.
+
+# Threshold for ping latency warnings, in milliseconds
+LatencyThreshold: 15
+
+# Dashboard file to publish: Apache on Linux - /var/www/html/DevNetDashboards/DDCAM/availability.html
+#   Apache in containerized version - /web-data/DevNetDashboards/DDCAM/availability.html
+DashboardFile: /var/www/html/DevNetDashboards/DDCAM/availability.html
+
+# MySQL database for storing device and status information
+MySQL:
+  host: localhost
+  CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+  username: dddbu
+  password: ddcam4DevNet!
+  database: devnet_dashboards
+
+
+# Prime Infrastructure Server environment info - at least one, possibly more hosts
+PrimeInfrastructure:
+  - host: primeinfrasandbox.cisco.com
+    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    username: devnetuser
+    password: DevNet123!
+
+
+# DNA Center Server environment info - at least one, possibly more hosts
+DNACenter:
+  - host: sandboxdnac.cisco.com
+    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    username: devnetuser
+    password: Cisco123!
+  - host: sandboxdnac2.cisco.com
+    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    username: devnetuser
+    password: Cisco123!
+
+
+# ACI APIC controller environment info - at least one, possibly more controllers
+ACIAPIC:
+  - host: sandboxapicdc.cisco.com
+    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    username: admin
+    password: ciscopsdt
