@@ -77,8 +77,8 @@ Install the fping utility from [this enhanced fping source](https://github.com/b
 
 Download the DD-CAM project
 
-    $ cd <project_directory>
-    $ git clone https://github.com/<ORGNAME>/<REPONAME>.git
+    $ cd <your_local_project_directory>
+    $ git clone https://github.com/jasoncdavis/devnetdashboards-convergedavailabilitymonitor.git
 
 
 #### Step 7: MySQL Database user and table work
