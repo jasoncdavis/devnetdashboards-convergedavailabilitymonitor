@@ -193,3 +193,4 @@ If you have questions, concerns, bug reports, etc., please create an issue again
 See the [LICENSE](./LICENSE).
 
 ----
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jasoncdavis/devnetdashboards-convergedavailabilitymonitor)
