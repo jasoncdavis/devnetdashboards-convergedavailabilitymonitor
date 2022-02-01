@@ -63,7 +63,7 @@ This [Apache installation instruction](https://www.tecmint.com/install-apache-wi
 #### Step 4: MySQL
 
 Install MySQL database server on Linux VM.  Development was done on MySQL Community Edition 8.0.21.
-This [MySQL installation guide]() is a good reference, if you need assistance.
+This [MySQL installation guide](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/) is a good reference, if you need assistance.
 
 
 #### Step 5: fping
