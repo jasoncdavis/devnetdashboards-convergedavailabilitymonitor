@@ -14,12 +14,13 @@ Required inputs/variables can be defined in the optionsconfig.py file
         password, database name, etc.
     
 v1      2021-0702   DevNet Automation Exchange publication
+v2      2023-0622   Add error handling for empty database
 
 Credits:
 """
 
 __filename__ = 'PingAndUpdateInventory.py'
-__version__ = '1'
+__version__ = '2'
 __author__ = 'Jason Davis - jadavis@cisco.com'
 __license__ = "Cisco Sample Code License, Version 1.1 - https://developer.cisco.com/site/license/cisco-sample-code-license/"
 
@@ -61,6 +62,10 @@ def get_mysql_devicelist(serverparams):
     print("Number of database records retrieved: " + str(cursor.rowcount))
     cursor.close()
     db.close()
+
+    if cursor.rowcount == 0:
+        sys.exit(f'MySQL server {serverparams["host"]} had NO inventory to process\n'
+                 'Have you run the "Get*" inventory import scripts yet?')
 
     pinglist = []
     for row in rows:

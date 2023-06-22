@@ -190,14 +190,16 @@ The following DevNet Sandboxes are referenced in the [src/optionsconfig.yaml](./
 
 [DNA Center v2.3.3.5 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/471eb739-323e-4805-b2a6-d0ec813dc8fc?diagramType=Topology)
 
-[DNA Center v2.3.3.4 Always-On Sandbox - secondary](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
+[DNA Center v2.3.3.5 Always-On Sandbox - secondary](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
 
 [ACI Simulator v6 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/18a514e8-21d4-4c29-96b2-e3c16b1ee62e?diagramType=Topology)
 
 
 ## How to test the software
 
-The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.  Access with the IP address of your VM or docker container instance - eg.  http://192.168.1.100/availability.html
+The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.  Access with the IP address of your VM or docker container instance - eg.  
+https://192.168.1.100:8443/DevNetDashboards/DDCAM/availability.html
+
 
 ## Known issues
 
