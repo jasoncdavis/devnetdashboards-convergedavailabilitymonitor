@@ -1,10 +1,10 @@
 # DevNet Dashboards - Converged Availability Monitor
 
-The DevNet Dashboards - Converged Availability Monitor (DD-CAM) project is part of a new set of automation offers called DevNet Dashboards.  These projects are based on leading practices developed in our Network Operations Center (NOC) for our CiscoLive conference events in the US and Europe.  We plan to release modules that can be used together to enhance network observability.
+The "DevNet Dashboards - Converged Availability Monitor (DD-CAM)" project is an automation offer from Cisco Developer Relations.  These projects are based on leading practices developed in engagement with customers and partners.  This specific DD-CAM project is derived from work with our Network Operations Center (NOC) for our CiscoLive conference events in the US and Europe.  We plan to release modules that can be used together to enhance network observability.
 
 This specific project provides a multi-domain, converged availability dashboard that uses Element Management Systems (EMSs) and controllers as sources of truth for device inventory.  You will not have to run a network scanning tool or utility to feed inventory for DD-CAM.  The current modules that extract inventory for DD-CAM are:
 
-1. Prime Infrastructure
+1. Prime Infrastructure (provided for legacy support, as the EMS is being phased out)
 2. DNA Center
 3. ACI APIC controller
 
@@ -30,17 +30,19 @@ This is based on technology and processes used for over 7 years in the CiscoLive
 
 ## Use Case Description
 This project solves Availability Monitoring issues when dealing with cross-domain management tools and controllers.  While plenty of other open-source projects exist to show availability dashboards, few address the basic first step, getting the network devices into inventory.  They leave that exercise to you.  This project extracts the inventory from several supplied sources of truth, such as Prime Infrastructure, DNA Center and the ACI APIC controller.  Multiple instances of each of these systems are allowed, for large environments.
-One of the challenges this project addresses is how to ping monitor so many end-points.  We're using the fping (fast ping) project's utility to do optimized ping tests.
+One of the challenges this project addresses is how to ping monitor so many end-points.  We're using the fping (fast ping) project to do optimized ping tests.
 Since this project was intended to be modular in the importation of devices from the management tools and controllers, it can be extended to other systems like VMware vCenter (monitor VMs), NetApp ONTAP (monitor filers), Kubernetes, etc.  The options are many.  Check back as we add more sources in the future.
-
 
 
 ## Installation
 
 Two options are provided: self-directed installation with requirements OR Docker.  Pick whichever suits your preference, security requirements and deployment capabilities.
-When running as a self-directed installation with requirements, it is suggested to run this project in its own Linux Virtual Machine.  Development was done on CentOS Stream 8.3, but releases at or above the 7 train or other Linux variants should be fine.
-Additionally, Apache and Python environments should be installed - CentOS may have provided one in your installation.  Our guidance is to keep the system-supplied version and install the latest Python and use virtual environments (venv) to maintain separation of environments from the core operating system.  Our development was done on Python v3.9.1, but anything above v3.7 should be sufficient.
+
+When running as a self-directed installation with requirements, it is suggested to run this project in its own Linux Virtual Machine.  Development was done on CentOS Stream 8.3, but releases at or above the 7 train or other Linux variants should be fine.  CiscoLive NOC deployments have been implemented on Ubuntu 22.04 LTS.
+
+Additionally, Apache and Python environments should be installed - your operating system package maintainer may have provided one in your installation.  Our guidance is to keep the system-supplied version and install the latest Python and use virtual environments (venv) to maintain separation of environments from the core operating system.  Our development was done on Python v3.9.1, but anything above v3.7 should be sufficient.
  
+
 ### Local, Linux-specific Installations:
 #### Step 1: Linux environment
 
@@ -88,27 +90,44 @@ Ensure you have a sound password selection for the database user.
 
 
 ### Docker Installations:
-Ensure you have docker and docker-compose installed in your environment.  In the project's [docker](./docker/) directory is the [docker-compose.yaml](./docker/docker-compose.yaml) file which defines the environment's service requirements.  Essentially, Apache, Python and MySQL images are created.  Remember your first time running 'docker-compose up' will require some time to download images from standard repositories.
+Ensure you have docker and docker-compose installed in your environment.
+
+Download the DD-CAM project
+
+    $ cd <your_local_project_directory>
+    $ git clone https://github.com/jasoncdavis/devnetdashboards-convergedavailabilitymonitor.git
+
+In the project's [docker](./docker/) directory is the [docker-compose.yaml](./docker/docker-compose.yaml) file which defines the environment's service requirements.  Essentially, Apache, Python and MySQL images are created.  Remember your first time running 'docker-compose up' will require some time to download images from standard repositories.
+
 For the docker image we will create two container volumes, web-data and mysql-data, which maintain the dynamic content for the Apache server and the MySQL database.  They will persist data if 'docker-compose stop' or 'docker-compose down' is executed.  Ensure you monitor the host system's file storage.  Development was done with about 20G disk space and easily manages thousands of endpoint monitors.  
 
-Access the Python container from the host server running docker, with 'docker exec -it dd-cam_python_1 bash'.  The project files are in /project/code.
+Access the Python container from the host server running docker, with...
+    $ docker exec -it dd-cam_python_1 bash
+
+The project files are in /project/code.
 
 
 ## Configuration
 
 An 'optionsconfig.yaml' file defines the Prime Infrastructure, DNA Center and ACI APIC controller IP addresses and authorized API user credentials.  The supplied optionsconfig.yaml file is currently pointing to DevNet Always-On Sandbox systems.  Please note, the devices extracted from those inventories are NOT generally reachable from the public Internet, so your dashboards will have a lot of RED until you reconfigure it to point to EMS/controllers that have access to your network devices.
 
+If using the docker container version, copy the [src/optionsconfig-docker.yaml](./src/optionsconfig-docker.yaml) to [src/optionsconfig.yaml](./src/optionsconfig.yaml) to use docker-specific directory defaults.
+
 Edit the [src/optionsconfig.yaml](./src/optionsconfig.yaml) file to suit your environment's inventory sources.  Multiple entries are allowed.  Comment out entries that are not currently used, preserving them for future options.  Enter each server's hostname/IP Address, authorized API username and password and any other parameters of interest.
 
 
 ## Usage
 
-The first script getPrimeInfraDevices.py, performs device list extraction from Prime Infrastructure server(s) and imports them into the MySQL database, 'inventory' table.
-The second script getDNACDevices.py, performs device list extraction from DNA Center server(s) and imports them into the MySQL database, 'inventory' table.
-The third script getACIAPICDevices.py, performs device list extraction from ACI APIC controller(s) and imports them into the MySQL database, 'inventory' table.
-The forth script PingandUpdateInventory.py, extracts the device list from the MySQL database and submits the list of devices to fping.  It also collects the results and updates the database.
-The fifth script CreateAvailabilityDashboard.py, creates the dashboard from the MySQL database results.
+The first step in using DD-CAM is to get device inventory extracted from your EMS and controllers defined in the [src/optionsconfig.yaml](./src/optionsconfig.yaml) file.
+The script [src/GetPrimeInfraDevices.py](./src/GetPrimeInfraDevices.py), performs device list extraction from Prime Infrastructure server(s) and imports them into the MySQL database, 'inventory' table.
+The script [src/GetDNACDevices.py](./src/GetDNACDevices.py), performs device list extraction from DNA Center server(s) and imports them into the MySQL database, 'inventory' table.
+The script [src/GetACIAPICDevices.py](./src/GetACIAPICDevices.py), performs device list extraction from ACI APIC controller(s) and imports them into the MySQL database, 'inventory' table.
 
+The next step in using DD-CAM is to ping and update the inventory and pingresults tables.
+The script [src/PingandUpdateInventory.py](./src/PingAndUpdateInventory.py), extracts the device list from the MySQL database and submits the list of devices to fping.  It also collects the results and updates the database.
+
+The final step in using DD-CAM is to create the web pages (dashboards) from the ping results in the MySQL database.
+The script [src/CreateAvailabilityDashboard.py](./src/CreateAvailabilityDashboard.py), creates the dashboard from the MySQL database results.
 
 Run the following Python scripts at least once manually or schedule in a crontab, as needed, based on your rate of network device change.  These scripts extract the network inventory and put them into the MySQL database.
 
@@ -128,7 +147,7 @@ A standard crontab model could be:
     */2 * * * * python PingandUpdateInventory.py  && python CreateAvailabilityDashboard.py
 
 
-If you are extracting devices from your management tools/controllers that you can't or don't want to ping for availability, use the mysql shell to update the 'inventory' table.  Specifically, set the do_ping column value to 0 (zero) and it will not be pinged.
+If you are extracting devices from your management tools/controllers that you can't or don't want to ping for availability, use the mysql shell to update the 'inventory' table.  Specifically, set the do_ping column value to 0 (zero) and the endpoint will not be pinged.
 
 <kbd>
 
@@ -149,23 +168,25 @@ If you are extracting devices from your management tools/controllers that you ca
     mysql>  
 </kbd>
 
+Alternatively, you could install [MySQLWorkbench](https://www.mysql.com/products/workbench/), as a graphical database administration tool, and perform the updates.
+
 
 ### DevNet Sandbox
 
 The following DevNet Sandboxes are referenced in the [src/optionsconfig.yaml](./src/optionsconfig.yaml) file for sample sources of inventory:
 
-[Prime Infrastructure v3.8 Always-on Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/446d800c-f6c1-45f0-bf88-b9d46baf9811?diagramType=Topology)
+~~[Prime Infrastructure v3.8 Always-on Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/446d800c-f6c1-45f0-bf88-b9d46baf9811?diagramType=Topology)~~ [Sandbox environment was retired]
 
-[DNA Center v1.3 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/471eb739-323e-4805-b2a6-d0ec813dc8fc?diagramType=Topology)
+[DNA Center v2.3.3.5 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/471eb739-323e-4805-b2a6-d0ec813dc8fc?diagramType=Topology)
 
-[DNA Center v2.1 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
+[DNA Center v2.3.3.4 Always-On Sandbox - secondary](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
 
-[ACI Simulator v4 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/5a229a7c-95d5-4cfd-a651-5ee9bc1b30e2?diagramType=Topology)
+[ACI Simulator v6 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/18a514e8-21d4-4c29-96b2-e3c16b1ee62e?diagramType=Topology)
 
 
 ## How to test the software
 
-The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.
+The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.  Access with the IP address of your VM or docker container instance - eg.  http://192.168.1.100/availability.html
 
 ## Known issues
 
@@ -175,7 +196,7 @@ None known at this time.
 
 For additional help, look to the [DevNet Developer Support](https://developer.cisco.com/site/support/) team.  If major enhancements are requested, the [Cisco Customer Experience (CX) team](https://www.cisco.com/c/m/en_us/customer-experience/index.html) can be engaged for transactional assistance.  
 
-If you have questions, concerns, bug reports, etc., please create an issue against this repository.
+If you have questions, concerns, bug reports, etc., please create an [issue](https://github.com/jasoncdavis/devnetdashboards-convergedavailabilitymonitor/issues) against this repository.
 
 ## Getting involved
 
