@@ -151,6 +151,7 @@ A standard crontab model could be:
 If you are extracting devices from your management tools/controllers that you can't or don't want to ping for availability, use the mysql shell to update the 'inventory' table.  Specifically, set the do_ping column value to 0 (zero) and the endpoint will not be pinged.
 
 <kbd>
+
     host-vm$ docker exec -it dd-cam_db_1 bash
     bash-4.4# mysql -u dddbu -p devnet_dashboards
     Enter password: ~~ddcam4DevNet!~~
