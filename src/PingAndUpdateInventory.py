@@ -65,6 +65,10 @@ def get_mysql_devicelist(serverparams):
     cursor.close()
     db.close()
 
+    if cursor.rowcount == 0:
+        sys.exit(f'MySQL server {serverparams["host"]} had NO inventory to process\n'
+                 'Have you run the "Get*" inventory import scripts yet?')
+
     pinglist = []
     for row in rows:
         #print(row)

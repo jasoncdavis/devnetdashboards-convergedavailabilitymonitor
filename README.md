@@ -102,6 +102,7 @@ In the project's [docker](./docker/) directory is the [docker-compose.yaml](./do
 For the docker image we will create two container volumes, web-data and mysql-data, which maintain the dynamic content for the Apache server and the MySQL database.  They will persist data if 'docker-compose stop' or 'docker-compose down' is executed.  Ensure you monitor the host system's file storage.  Development was done with about 20G disk space and easily manages thousands of endpoint monitors.  
 
 Access the Python container from the host server running docker, with...
+
     $ docker exec -it dd-cam_python_1 bash
 
 The project files are in /project/code.
@@ -150,15 +151,24 @@ A standard crontab model could be:
 If you are extracting devices from your management tools/controllers that you can't or don't want to ping for availability, use the mysql shell to update the 'inventory' table.  Specifically, set the do_ping column value to 0 (zero) and the endpoint will not be pinged.
 
 <kbd>
-
-    $ mysql
-
-    mysql> use devnet_dashboards;
-
+    host-vm$ docker exec -it dd-cam_db_1 bash
+    bash-4.4# mysql -u dddbu -p devnet_dashboards
+    Enter password: ~~ddcam4DevNet!~~
     Reading table information for completion of table and column names
     You can turn off this feature to get a quicker startup with -A
+     
+    Welcome to the MySQL monitor.  Commands end with ; or \g.
+    Your MySQL connection id is 95
+    Server version: 8.0.33 MySQL Community Server - GPL
+    
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    
+    Oracle is a registered trademark of Oracle Corporation and/or its
+    affiliates. Other names may be trademarks of their respective
+    owners.
+    
+    Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-    Database changed
     mysql> update inventory
       -> SET do_ping = 0
       -> WHERE mgmt_ip_address = '30.1.1.1';
@@ -167,6 +177,7 @@ If you are extracting devices from your management tools/controllers that you ca
 
     mysql>  
 </kbd>
+
 
 Alternatively, you could install [MySQLWorkbench](https://www.mysql.com/products/workbench/), as a graphical database administration tool, and perform the updates.
 
@@ -179,14 +190,16 @@ The following DevNet Sandboxes are referenced in the [src/optionsconfig.yaml](./
 
 [DNA Center v2.3.3.5 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/471eb739-323e-4805-b2a6-d0ec813dc8fc?diagramType=Topology)
 
-[DNA Center v2.3.3.4 Always-On Sandbox - secondary](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
+[DNA Center v2.3.3.5 Always-On Sandbox - secondary](https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology)
 
 [ACI Simulator v6 Always-On Sandbox](https://devnetsandbox.cisco.com/RM/Diagram/Index/18a514e8-21d4-4c29-96b2-e3c16b1ee62e?diagramType=Topology)
 
 
 ## How to test the software
 
-The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.  Access with the IP address of your VM or docker container instance - eg.  http://192.168.1.100/availability.html
+The scripts should generate entries in the mysql 'devnet_dashboards' database and 'inventory' & 'pingresults' tables.  Additionally an availability.html file should be dropped into the Apache web server's publication directory, usually /var/www/html.  Access with the IP address of your VM or docker container instance - eg.  
+https://192.168.1.100:8443/DevNetDashboards/DDCAM/availability.html
+
 
 ## Known issues
 

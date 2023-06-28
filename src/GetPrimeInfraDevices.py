@@ -27,10 +27,11 @@ Version log:
 v1      2021-0220   Ported from AO workflows to Python
 v2      2021-0421   Refactored to enable for DevNet Automation 
 Exchange
+v3      2023-0622   Add more error handling
 
 Credits:
 """
-__version__ = '2'
+__version__ = '3'
 __author__ = 'Jason Davis - jadavis@cisco.com'
 __license__ = "Cisco Sample Code License, Version 1.1 - https://developer.cisco.com/site/license/cisco-sample-code-license/"
 
@@ -102,6 +103,8 @@ def extract_device_properties(server, deviceinventory):
 
     deviceparams=[]
     inventory_json = json.loads(deviceinventory)
+    if inventory_json["queryResponse"]["@count"] == 0:
+        sys.exit(f"Prime Infrastructure server {server} had NO inventory to export")
     for entity in inventory_json["queryResponse"]["entity"]:
         device_name = entity.get('devicesDTO', {}).get('deviceName', 'Unknown')
         ip_address = entity["devicesDTO"]["ipAddress"]
