@@ -17,29 +17,44 @@ MySQL:
   database: devnet_dashboards
 
 
-# Prime Infrastructure Server environment info - at least one, possibly more hosts
+# Prime Infrastructure Server environment info - 
+#   at least one, possibly more hosts
 PrimeInfrastructure:
-  - host: primeinfrasandbox.cisco.com
-    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
-    username: devnetuser
-    password: DevNet123!
+  - host: CHANGEME
+    CheckSSLCert: False  # Or False, if you are not security conscious and using self-signed certs internally
+    username: CHANGEME
+    password: CHANGEME
 
 
 # DNA Center Server environment info - at least one, possibly more hosts
+# This default instance is from the Cisco DevNet Sandbox environment
+# See https://devnetsandbox.cisco.com/RM/Diagram/Index/c3c949dc-30af-498b-9d77-4f1c07d835f9?diagramType=Topology
+# See https://devnetsandbox.cisco.com/RM/Diagram/Index/471eb739-323e-4805-b2a6-d0ec813dc8fc?diagramType=Topology
 DNACenter:
   - host: sandboxdnac.cisco.com
-    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    CheckSSLCert: False  # Or False, if you are not security conscious and using self-signed certs internally
     username: devnetuser
     password: Cisco123!
   - host: sandboxdnac2.cisco.com
-    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    CheckSSLCert: False  # Or False, if you are not security conscious and using self-signed certs internally
     username: devnetuser
     password: Cisco123!
 
 
 # ACI APIC controller environment info - at least one, possibly more controllers
+# This default instance is from the Cisco DevNet Sandbox environment
+# See https://devnetsandbox.cisco.com/RM/Diagram/Index/18a514e8-21d4-4c29-96b2-e3c16b1ee62e?diagramType=Topology
 ACIAPIC:
   - host: sandboxapicdc.cisco.com
-    CheckSSLCert: True  # Or False, if you are not security conscious and using self-signed certs internally
+    CheckSSLCert: False  # Or False, if you are not security conscious and using self-signed certs internally
     username: admin
-    password: ciscopsdt
+    password: "!v3G@!4@Y"
+
+
+# Wireless LAN Controller environment info (for NETCONF access)
+#  at least one, possibly more controllers
+WLC:
+  - alias: myAlias
+    host: 192.168.1.100
+    username: myUsername
+    password: myPassword
