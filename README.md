@@ -7,6 +7,7 @@ This specific project provides a multi-domain, converged availability dashboard 
 1. Prime Infrastructure (provided for legacy support, as the EMS is being phased out)
 2. DNA Center
 3. ACI APIC controller
+4. Wireless LAN Controller (WLC)
 
 Each type of EMS/controller-specific source of truth has a Python script which reads its inventory and imports it into a MySQL database.  A separate Python script extracts the converged device list from the database and feeds it to an optimized ping utility, fping, from the opensource project at https://fping.org/  A simple dashboard is then generated and published into an Apache webserver for view on a browser.  This browser can be in a kiosk mode for a NOC or it can be easily viewed on a mobile device - phone or tablet.
 
@@ -123,6 +124,7 @@ The first step in using DD-CAM is to get device inventory extracted from your EM
 The script [src/GetPrimeInfraDevices.py](./src/GetPrimeInfraDevices.py), performs device list extraction from Prime Infrastructure server(s) and imports them into the MySQL database, 'inventory' table.
 The script [src/GetDNACDevices.py](./src/GetDNACDevices.py), performs device list extraction from DNA Center server(s) and imports them into the MySQL database, 'inventory' table.
 The script [src/GetACIAPICDevices.py](./src/GetACIAPICDevices.py), performs device list extraction from ACI APIC controller(s) and imports them into the MySQL database, 'inventory' table.
+The script [src/GetWLCAPs.py](./src/GetWLCAPs.py), performs device list extraction from Wireless LAN Controller(s) and imports them into the MySQL database, 'inventory' table.
 
 The next step in using DD-CAM is to ping and update the inventory and pingresults tables.
 The script [src/PingandUpdateInventory.py](./src/PingAndUpdateInventory.py), extracts the device list from the MySQL database and submits the list of devices to fping.  It also collects the results and updates the database.
@@ -135,6 +137,7 @@ Run the following Python scripts at least once manually or schedule in a crontab
     $ python getPrimeInfraDevices.py
     $ python getDNACDevices.py
     $ python getACIAPICDevices.py
+    $ python getWLCAPs.py
 
 Run the following Python scripts in a crontab, based on how often you'd like to update the dashboard - every 5 minutes, every minute, etc.
 
