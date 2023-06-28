@@ -14,29 +14,28 @@ Required inputs/variables can be defined in the optionsconfig.py file
         password, database name, etc.
     
 v1      2021-0702   DevNet Automation Exchange publication
+v2      2023-0628   Code clean-up and reachable_pct fix
 
 Credits:
 """
 
 __filename__ = 'PingAndUpdateInventory.py'
-__version__ = '1'
+__version__ = '2'
 __author__ = 'Jason Davis - jadavis@cisco.com'
-__license__ = "Cisco Sample Code License, Version 1.1 - https://developer.cisco.com/site/license/cisco-sample-code-license/"
+__license__ = "Cisco Sample Code License, Version 1.1 - " \
+    "https://developer.cisco.com/site/license/cisco-sample-code-license/"
 
 
 import sys
-import requests
-from requests.auth import HTTPBasicAuth
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import json
 import MySQLdb
 import subprocess
 from datetime import datetime
-import ReadEnvironmentVars
+import GetEnv
 
 
 # Script-global variables
-pingfile = "pingfile.txt"
+PINGFILE = "pingfile.txt"
 
 
 def get_mysql_devicelist(serverparams):
@@ -44,15 +43,19 @@ def get_mysql_devicelist(serverparams):
     
     Queries the MySQL database and inventory table for the device list
     
-    :param serverparams: dictionary containing settings of the MySQL server being polled [eg. host, username, password,  etc.]
+    :param serverparams: dictionary containing settings of the MySQL
+        server being polled [eg. host, username, password,  etc.]
     :returns: pinglist - string containing list of devices to ping
     """
 
-    db=MySQLdb.connect(host=serverparams["host"],user=serverparams["username"], 
-        passwd=serverparams["password"],db=serverparams["database"])
+    db=MySQLdb.connect(host=serverparams["host"],
+                       user=serverparams["username"],
+                       passwd=serverparams["password"],
+                       db=serverparams["database"])
 
     cursor=db.cursor()
-    SQL = f"""SELECT mgmt_ip_address, do_ping FROM {serverparams["database"]}.inventory
+    SQL = f"""SELECT mgmt_ip_address, do_ping
+    FROM {serverparams["database"]}.inventory
     WHERE do_ping = 1 AND mgmt_ip_address != '0.0.0.0'
     """
 
@@ -71,7 +74,7 @@ def get_mysql_devicelist(serverparams):
 
 
 def write_to_file(in_devicelist):
-    with open(pingfile, "w") as outfile:
+    with open(PINGFILE, "w") as outfile:
         outfile.write("\n".join(in_devicelist))
 
 
@@ -85,7 +88,9 @@ def execute_fping():
     :returns: string containing list of devices and their ping results
     """
 
-    output = subprocess.run("fping -c3 -q --json < " + pingfile, shell=True, capture_output=True)
+    output = subprocess.run("fping -c3 -q --json < " + PINGFILE, 
+                            shell=True, 
+                            capture_output=True)
     return output.stdout.decode()
 
 
@@ -104,7 +109,7 @@ def convert_json_to_sqldata(in_pingresults):
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     json_results = json.loads(in_pingresults)
-    #print(json_results)
+    # print(json_results)
     endpoints_up = []
     endpoints_down = []
 
@@ -114,11 +119,17 @@ def convert_json_to_sqldata(in_pingresults):
         if endpoints[endpoint]["loss_percentage"] == 100:
             endpoints_down.append((endpoint, 0, None, None, None, 1))
         else:
-            endpoints_up.append((endpoint, 100 - endpoints[endpoint]["loss_percentage"], endpoints[endpoint]["avg"], endpoints[endpoint]["min"], endpoints[endpoint]["max"], str(timestamp), 0))
+            endpoints_up.append((endpoint,
+                                 100 - endpoints[endpoint]["loss_percentage"],
+                                 endpoints[endpoint]["avg"],
+                                 endpoints[endpoint]["min"],
+                                 endpoints[endpoint]["max"],
+                                 str(timestamp),
+                                 0))
     
-    #print(endpoints_down)
-    #print(endpoints_up)
-    return(endpoints_down, endpoints_up)
+    #print(f'Endpoints down:\n{endpoints_down}')
+    #print(f'Endpoints_up:\n{endpoint_up}')
+    return endpoints_down, endpoints_up
 
 
 def insupd_mysql_pingresults(serverparams, status, sql_values):
@@ -126,35 +137,46 @@ def insupd_mysql_pingresults(serverparams, status, sql_values):
     
     Performs Inserts/Updates into MySQL with final results
 
-    :param serverparams: dictionary containing settings of the MySQL server being polled [eg. host, username, password,  etc.]
+    :param serverparams: dictionary containing settings of the MySQL
+      server being polled [eg. host, username, password,  etc.]
     :param status: string containing the device status - up or down
-    :sql_values: list of tuples containing the SQL values to be inserted/updated
+    :sql_values: list of tuples containing the SQL values to be
+      inserted/updated
     :returns: None
     """
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    db=MySQLdb.connect(host=serverparams["host"],user=serverparams["username"], 
-        passwd=serverparams["password"],db=serverparams["database"])
+    db=MySQLdb.connect(host=serverparams["host"],
+                       user=serverparams["username"],
+                       passwd=serverparams["password"],
+                       db=serverparams["database"])
 
     cursor=db.cursor()
 
-    #print(status)
-    #print(sql_values)
+    # print(status)
+    # print(sql_values)
     if status == "down":
-        SQL = f"""INSERT INTO {serverparams["database"]}.pingresults (mgmt_ip_address, reachable_pct, 
-            avg_latency, min_latency, max_latency, down_count) 
-          VALUES (%s, %s, %s, %s, %s, %s) 
-          ON DUPLICATE KEY UPDATE reachable_pct=0, avg_latency=VALUES(avg_latency), 
-            min_latency=VALUES(min_latency), max_latency=VALUES(max_latency), 
+        SQL = f"""INSERT INTO {serverparams["database"]}.pingresults
+        (mgmt_ip_address, reachable_pct, avg_latency, min_latency,
+        max_latency, down_count) 
+        VALUES (%s, %s, %s, %s, %s, %s) 
+        ON DUPLICATE KEY UPDATE reachable_pct=0,
+            avg_latency=VALUES(avg_latency),
+            min_latency=VALUES(min_latency),
+            max_latency=VALUES(max_latency),
             down_count=down_count+1
         """
     else:
-        SQL = f"""INSERT INTO {serverparams["database"]}.pingresults (mgmt_ip_address, reachable_pct, 
-            avg_latency, min_latency, max_latency, datetime_lastup, down_count) 
-          VALUES (%s, %s, %s, %s, %s, %s, %s) 
-          ON DUPLICATE KEY UPDATE reachable_pct=100-VALUES(reachable_pct), avg_latency=VALUES(avg_latency), 
-            min_latency=VALUES(min_latency), max_latency=VALUES(max_latency), 
-            datetime_lastup='{str(timestamp)}', down_count=0
+        SQL = f"""INSERT INTO {serverparams["database"]}.pingresults 
+        (mgmt_ip_address, reachable_pct, avg_latency, min_latency,
+         max_latency, datetime_lastup, down_count)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE reachable_pct=VALUES(reachable_pct), 
+         avg_latency=VALUES(avg_latency),
+         min_latency=VALUES(min_latency),
+         max_latency=VALUES(max_latency),
+         datetime_lastup='{str(timestamp)}',
+         down_count=0
         """
 
     #print(SQL)
@@ -167,12 +189,13 @@ def insupd_mysql_pingresults(serverparams, status, sql_values):
 
 
 def main():
-    devicelist = get_mysql_devicelist(ReadEnvironmentVars.read_config_file("MySQL"))
+    mysqlenv = GetEnv.getparam("MySQL")
+    devicelist = get_mysql_devicelist(mysqlenv)
     write_to_file(devicelist)
     pingresults = execute_fping()
     (sqldata_down, sqldata_up) = convert_json_to_sqldata(pingresults)
-    insupd_mysql_pingresults(ReadEnvironmentVars.read_config_file("MySQL"), "down", sqldata_down)
-    insupd_mysql_pingresults(ReadEnvironmentVars.read_config_file("MySQL"), "up", sqldata_up)
+    insupd_mysql_pingresults(mysqlenv, "down", sqldata_down)
+    insupd_mysql_pingresults(mysqlenv, "up", sqldata_up)
 
 if __name__ == "__main__":
     main()

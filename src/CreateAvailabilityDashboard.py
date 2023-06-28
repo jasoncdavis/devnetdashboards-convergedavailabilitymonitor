@@ -22,32 +22,28 @@ Outputs:
 
 Version log:
 v1      2021-0702   Published to DevNet Automation Exchange
+v2      2023-0628   Change ReadEnvironmentVars to GetEnv; fix reset code
 
 Credits:
 """
 
 __filename__ = 'CreateAvailabilityDashboard.py'
-__version__ = '1'
+__version__ = '2'
 __author__ = 'Jason Davis - jadavis@cisco.com'
-__license__ = "Cisco Sample Code License, Version 1.1 - https://developer.cisco.com/site/license/cisco-sample-code-license/"
+__license__ = "Cisco Sample Code License, Version 1.1 - "\
+    "https://developer.cisco.com/site/license/cisco-sample-code-license/"
 
 
 import sys
-import requests
-from requests.auth import HTTPBasicAuth
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-import json
 import MySQLdb
-import subprocess
 from datetime import datetime
 import os
-import ReadEnvironmentVars
+import GetEnv
 
-# Script-global variables
-pingfile = "pingfile.txt"
-dashboardfile = "/var/www/html/availability.html"
-max_cells_wide = 10
-
+### Script-global variables
+# Maximum number of cells wide on dashboard; may need to be adjusted
+#  for larger monitors
+MAX_CELLS_WIDE = 10
 
 
 def get_mysql_pingresults(serverparams):
@@ -81,17 +77,23 @@ def get_mysql_pingresults(serverparams):
 
 def get_poll_stats(serverparams, latency_threshold):
     """Get poll stats
-    
+
     Connects to MySQL database and extracts the statistics about 
     device counts for up, latent, dropping and down devices.
 
-    :param serverparams: dictionary containing settings of the MySQL server [eg. host, database name, username, password,  etc.]
-    :param latency_threshold: integer value extracted from optionsconfig.py parameters file.  Allows user to define custom threshold.
-    :returns: tuple of stats (up, dropping, latent and down device counts)
+    :param serverparams: dictionary containing settings of the MySQL 
+        server [eg. host, database name, username, password,  etc.]
+    :param latency_threshold: integer value extracted from 
+        optionsconfig.py parameters file.  Allows user to define custom
+        threshold.
+    :returns: tuple of stats (up, dropping, latent and down device 
+        counts)
     """
-    
-    db=MySQLdb.connect(host=serverparams["host"],user=serverparams["username"], 
-        passwd=serverparams["password"],db=serverparams["database"])
+
+    db=MySQLdb.connect(host=serverparams["host"],
+                       user=serverparams["username"],
+                       passwd=serverparams["password"],
+                       db=serverparams["database"])
 
     cursor=db.cursor()
     SQL_DOWN = f"""SELECT COUNT(mgmt_ip_address)
@@ -108,7 +110,7 @@ def get_poll_stats(serverparams, latency_threshold):
       FROM {serverparams["database"]}.pingresults
       WHERE reachable_pct < 100 AND reachable_pct > 0
       """
-    
+
     SQL_LATENT = f"""SELECT COUNT(mgmt_ip_address)
       FROM {serverparams["database"]}.pingresults
       WHERE avg_latency > {latency_threshold}
@@ -130,27 +132,30 @@ def get_poll_stats(serverparams, latency_threshold):
     #print("Number of up devices: " + str(upcount[0]))
     #print("Number of dropping devices: " + str(dropcount[0]))
     #print("Number of latent devices: " + str(latentcount[0]))
-    
+
     cursor.close()
     db.close()
 
-    return (downcount[0], upcount[0], dropcount[0], latentcount[0])
+    return downcount[0], upcount[0], dropcount[0], latentcount[0]
 
 
 def generate_htmlcells(in_results, threshold):
     """Generate HTML cells
-    
-    Generate HTML cells by extracting incoming results and providing the necessary HTML tags and formatting.
-    
+
+    Generate HTML cells by extracting incoming results and providing
+    the necessary HTML tags and formatting.
+
     :param in_results: dictionary containing ping results from database
-    :param threshold: integer or floating point number representing custom desired threshold
+    :param threshold: integer or floating point number representing
+       custom desired threshold
     :returns: string of table cells rendered as HTML
     """
 
     tablecells = ""
     for count, endpoint in enumerate(in_results, start=1):
-        #print(endpoint[3])
-        #print(type(endpoint[3]))
+        # print(endpoint)
+        # print(endpoint[3])
+        # print(type(endpoint[3]))
         if endpoint[2] == 0 or endpoint[2] == None:
             cellhtml = f"""<td class="down">{endpoint[0]}<br>
         {endpoint[1]}<br>
@@ -177,7 +182,7 @@ def generate_htmlcells(in_results, threshold):
         </td>
         """
         tablecells += cellhtml
-        if count % max_cells_wide == 0: tablecells += """</tr>
+        if count % MAX_CELLS_WIDE == 0: tablecells += """</tr>
         <tr>
         """
     return tablecells
@@ -185,17 +190,21 @@ def generate_htmlcells(in_results, threshold):
 
 def generate_availability_dashboard(cells, downcount, upcount, dropcount, latentcount):
     """Generate Availability dashboard
-    
-    Takes in the HTML table cell information along with availability statistics and generates final HTML page.
-    
+
+    Takes in the HTML table cell information along with availability 
+    statistics and generates final HTML page.
+
     :param cells: string representing HTML cell data
-    :param downcount, upcount, dropcount, latentcount: integer values representing availability stats
-    :returns: htmltemplate - string representing final webpage to be published
+    :param downcount, upcount, dropcount, latentcount: integer values
+      representing availability stats
+    :returns: htmltemplate - string representing final webpage to be
+      published
     """
 
     gen_timestamp = datetime.now().strftime('%H:%M:%S %m-%d-%Y')
 
-    # Note with f-strings and HTML any styles should be escaped with double braces {{}}
+    # Note with f-strings and HTML any styles should be escaped with
+    # double braces {{}}
     htmltemplate = f"""<html>
   <head>
 
@@ -288,9 +297,10 @@ def generate_availability_dashboard(cells, downcount, upcount, dropcount, latent
 
 def write_to_file(dashboard_location, in_content):
     """Write to file
-    
-    Receive HTML content in and writes as file to dashboard publishing location
-    
+
+    Receive HTML content in and writes as file to dashboard publishing
+    location
+
     :param in_content: string representing web page HTML
     :returns: None; file is written to web hosting directory, typically
         /var/www/html
@@ -303,13 +313,16 @@ def write_to_file(dashboard_location, in_content):
 
 
 def main():
-    latency_threshold = ReadEnvironmentVars.read_config_file("LatencyThreshold")
-    dashboard_location = ReadEnvironmentVars.read_config_file("DashboardFile")
-    results_list = get_mysql_pingresults(ReadEnvironmentVars.read_config_file("MySQL"))
+    latency_threshold = GetEnv.getparam("LatencyThreshold")
+    dashboard_location = GetEnv.getparam("DashboardFile")
+    mysqlenv = GetEnv.getparam("MySQL")
+    results_list = get_mysql_pingresults(mysqlenv)
 
-    downcount, upcount, dropcount, latentcount = get_poll_stats(ReadEnvironmentVars.read_config_file("MySQL"), latency_threshold)
+    downcount, upcount, dropcount, latentcount = get_poll_stats(mysqlenv, latency_threshold)
     availabilitycells = generate_htmlcells(results_list, latency_threshold)
-    dashboard = generate_availability_dashboard(availabilitycells, downcount, upcount, dropcount, latentcount)
+    dashboard = generate_availability_dashboard(availabilitycells, 
+                                                downcount, upcount, 
+                                                dropcount, latentcount)
     write_to_file(dashboard_location, dashboard)
 
 

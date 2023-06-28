@@ -54,12 +54,24 @@ def get_aciapic_authtoken(server):
     # log in to API
     login_url = 'https://' + server["host"] + '/api/aaaLogin.json'
     #print(login_url)
-    post_response = requests.post(login_url, data=json_credentials)
-    # get token from login response structure
+    ssl_verify = server["CheckSSLCert"]
+    if ssl_verify == False:
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
     try:
+        post_response = requests.post(login_url, 
+                                      data=json_credentials,
+                                      verify=ssl_verify)
+        # get token from login response structure
+        # print(post_response.text)
         auth = json.loads(post_response.text)
-    except:
-        print(f'Unable to reach ACI APIC controller {server["host"]}\nTry again later...')
+        if auth['imdata'][0].get('error') is not None:
+            print('Got an error communication with APIC controller')
+            if 'FAILED local authentication' in auth['imdata'][0]['error']['attributes']['text']:
+                sys.exit('Incorrect credentials - check optionsconfig.yaml')
+    except Exception as e:
+        print(f'Unable to reach ACI APIC controller {server["host"]}\n'
+              f'Got exception: {e}')
         sys.exit(1) # exiing with a non zero value is better for returning from an error
 
     login_attributes = auth['imdata'][0]['aaaLogin']['attributes']
